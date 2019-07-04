@@ -111,7 +111,10 @@
     
       editor.execute = function() {
         for (var i = 0; i < commands.length; i++)
+        {
           commands[i].execute( { stdout: params.stdout } );
+          state = state || "";
+        }
       };
 
       return editor;
