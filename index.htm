@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Text Editor</title>
+  </head>
+  <body>
+    <h1>Text Editor</h1>
+
+    <div class="container-fluid">
+
+      <div class="row">
+
+        <div class="col-8">
+
+            <div class="form-group">
+              <label for="commands">Commands</label>
+              <textarea id="commands" class="form-control" rows="10"></textarea>
+            </div>
+        </div>
+        
+        <div class="col-4">
+          <label for="output">Output</label>
+          <textarea id="output" class="form-control" rows="10"></textarea>
+        </div>
+        
+      </div>
+      
+      <div class="row">
+        <div class="col-3">
+          <button type="button" class="btn btn-primary" id="fire">Fire</button>
+        </div>
+        <div class="col-3">
+          <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Examples
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item commands-example" href="#" data-text="
+8
+1 abc
+3 3
+2 3
+1 xy
+3 2
+4 
+4 
+3 1">First Example</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
+    <script>
+    
+    var TextEditor = function(params) {
+
+      var lines = params.stdin().split('\n');
+      lines.shift();
+      
+      var commands = [];
+      
+      var state = '';
+      
+      for (var i = 0; i < lines.length; i++){
+        const line = lines[i];
+        const value = line.split(' ')[1];
+        const command = { line: line, value: value };
+
+        var undoWrapper = function(func) {
+          command.undo = function() { state = command.previousState; command.undo = undefined; }
+          return function() { command.previousState = state; func(); } 
+        };
+
+        if (line[0] == '1')
+          command.execute = undoWrapper(function() { state = state + value; });
+
+        if (line[0] == '2')
+          command.execute = undoWrapper(function() { state = state.substring(0, state.length - parseInt(value)); });
+          
+        if (line[0] == '3')
+          command.execute = function(p) { p.stdout(state.substring(parseInt(value) - 1, parseInt(value))); };
+          
+        if (line[0] == '4')
+          command.execute = function() {
+            var commandToUndo = undefined;
+          
+            for (var j = commands.length - 1; commandToUndo == undefined && j >= 0; j--)
+              if (commands[j].undo)
+                commandToUndo = commands[j];
+                
+            commandToUndo.undo();
+          };
+
+        commands.push(command);
+      };
+      
+      var editor = {};
+    
+      editor.execute = function() {
+        for (var i = 0; i < commands.length; i++)
+          commands[i].execute( { stdout: params.stdout } );
+      };
+
+      return editor;
+    };
+    
+    var _ = function (){
+    
+      var loadExample = function(text) { $('#commands').val(text.trim()); };
+      
+      var get = function() { return $('#commands').val().trim(); };
+    
+      $('.commands-example').click(function() { loadExample($(this).attr('data-text')); } );
+      $('.commands-example:first').click();
+      
+      $('#fire').click(function() {      
+        
+        var output = $('#output');
+        
+        output.val('');
+        
+        var stdin = function() { return get(); };
+        var stdout = function(x){ output.val((output.val() + '\n' + x).trim()); };
+        
+        TextEditor( { stdin: stdin, stdout: stdout } ).execute();
+      
+      });
+      
+    }();
+   
+    </script>
+    
+  </body>
+</html>
