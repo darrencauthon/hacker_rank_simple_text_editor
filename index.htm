@@ -133,11 +133,11 @@
       for (var i = 0; i < lines.length; i++){
         const line = lines[i];
         const value = line.split(' ')[1];
-        const command = { line: line, value: value };
+        const command = { line: line, value: value, index: i };
 
         var undoWrapper = function(func) {
           command.undo = function() { state = command.previousState; command.undo = undefined; }
-          return function() { command.previousState = state; func(); } 
+          return function() { command.previousState = state; func(); }
         };
 
         if (line[0] == '1')
@@ -153,10 +153,12 @@
           command.execute = function() {
             var commandToUndo = undefined;
           
-            for (var j = commands.length - 1; commandToUndo == undefined && j >= 0; j--)
+            for (var j = command.index - 1; commandToUndo == undefined && j >= 0; j--)
+            {
               if (commands[j].undo)
                 commandToUndo = commands[j];
-                
+            }
+
             commandToUndo.undo();
           };
 
