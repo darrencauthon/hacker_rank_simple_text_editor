@@ -154,10 +154,8 @@
             var commandToUndo = undefined;
           
             for (var i = command.index - 1; commandToUndo == undefined && i >= 0; i--)
-            {
               if (commands[i].undo)
                 commandToUndo = commands[i];
-            }
 
             commandToUndo.undo();
           };
