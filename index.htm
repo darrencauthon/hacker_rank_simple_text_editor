@@ -153,10 +153,10 @@
           command.execute = function() {
             var commandToUndo = undefined;
           
-            for (var j = command.index - 1; commandToUndo == undefined && j >= 0; j--)
+            for (var i = command.index - 1; commandToUndo == undefined && i >= 0; i--)
             {
-              if (commands[j].undo)
-                commandToUndo = commands[j];
+              if (commands[i].undo)
+                commandToUndo = commands[i];
             }
 
             commandToUndo.undo();
